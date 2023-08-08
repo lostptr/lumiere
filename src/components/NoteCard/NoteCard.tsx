@@ -1,30 +1,33 @@
 import { StyleSheet, View } from "react-native";
-import { Card, Chip, Text } from "react-native-paper";
+import { Card, Text } from "react-native-paper";
+import { Note } from "src/types";
 import Tag from "./Tag";
 
 interface NoteCardProps {
-  title: string,
-  content: string,
-  cover?: string,
-  tags?: string[],
+  note: Note,
+  onPress: (note: Note) => void,
 }
 
-export default function NoteCard({ title, content, cover, tags }: NoteCardProps) {
+export default function NoteCard({ onPress, note }: NoteCardProps) {
 
-  const tagComponents = tags?.map((tag) => <Tag name={tag} key={tag} />)
+  const tagComponents = note.tags?.map((tag) => <Tag name={tag} key={tag} />)
 
-  return <Card style={styles.card}>
+  return <Card
+    style={styles.card}
+    mode="outlined"
+    onPress={() => onPress(note)}
+  >
 
-    {!!cover &&
-      <Card.Cover source={{ uri: cover }} />
+    {!!note.cover &&
+      <Card.Cover source={{ uri: note.cover }} />
     }
 
-    <Card.Title title={title} titleVariant="titleLarge" />
+    <Card.Title title={note.title} titleVariant="titleLarge" />
 
     <Card.Content>
-      <Text variant="bodyMedium">{content}</Text>
+      <Text variant="bodyMedium">{note.content}</Text>
 
-      {!!tags &&
+      {!!note.tags &&
         <View style={styles.tagContainer}>
           {tagComponents}
         </View>

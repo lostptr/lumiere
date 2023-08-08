@@ -14,8 +14,12 @@ const createEmptyNote = (): Note => ({ id: 0, title: '', content: '' });
 export default function Home({ navigation }: HomeProps) {
   const notes = useSelector((state: RootState) => state.note.notes);
 
-  const editNewNote = () => {
+  const createNote = () => {
     navigation.navigate('Editor', { operation: "create", note: createEmptyNote() });
+  };
+
+  const editNote = (note: Note) => {
+    navigation.navigate('Editor', { operation: "edit", note });
   };
 
   return <View style={{ flex: 1, height: "100%" }}>
@@ -24,12 +28,12 @@ export default function Home({ navigation }: HomeProps) {
       contentContainerStyle={styles.container}
       data={notes}
       scrollEnabled={true}
-      renderItem={({ item }) => <NoteCard {...item} />}
+      renderItem={({ item }) => <NoteCard note={item} onPress={editNote} />}
     />
     <FAB
       icon="plus"
       style={styles.fab}
-      onPress={editNewNote}
+      onPress={createNote}
     />
   </View>
 }

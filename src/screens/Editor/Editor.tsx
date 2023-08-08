@@ -1,6 +1,6 @@
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { create } from "@store/reducers/note";
+import { create, edit } from "@store/reducers/note";
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Appbar, Chip, TextInput } from "react-native-paper";
@@ -14,18 +14,30 @@ type EditorProps = NativeStackScreenProps<RoutesParamsList, 'Editor'>
 
 export default function Editor({ route, navigation }: EditorProps) {
   const dispatch = useDispatch();
+  const operation = route.params.operation;
   const [title, setTitle] = useState(route.params.note.title);
   const [content, setContent] = useState(route.params.note.content);
   const [tags, setTags] = useState(route.params.note.tags ?? []);
 
   const onSubmit = () => {
     const finalNote: Note = {
-      id: 0,
+      id: route.params.note.id,
       title,
       content,
       tags
     };
-    dispatch(create(finalNote));
+
+    let action;
+    switch (operation) {
+      case "create":
+        action = create
+        break;
+      case "edit":
+        action = edit;
+        break;
+    }
+
+    dispatch(action(finalNote));
 
     navigation.navigate('Home');
   }
