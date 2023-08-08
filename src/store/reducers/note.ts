@@ -33,11 +33,11 @@ const noteSlice = createSlice({
 
       state.notes = notes;
     },
-    delete: (state, action: PayloadAction<{ id: number }>) => {
-      console.log(`Triggered 'delete' reducer.`);
+    remove: (state, action: PayloadAction<{ id: number }>) => {
+      state.notes = state.notes.filter(n => n.id !== action.payload.id);
     },
   }
 });
 
-export const { create, edit } = noteSlice.actions;
+export const { create, edit, remove } = noteSlice.actions;
 export default noteSlice.reducer;
