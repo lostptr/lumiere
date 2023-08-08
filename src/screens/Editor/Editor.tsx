@@ -1,16 +1,19 @@
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { create } from "@store/reducers/note";
 import { useEffect, useState } from "react";
-import { FlatList, StyleSheet, View, VirtualizedList } from "react-native";
-import { Appbar, Button, Chip, Text, TextInput } from "react-native-paper";
+import { StyleSheet, View } from "react-native";
+import { Appbar, Chip, TextInput } from "react-native-paper";
+import { useDispatch } from "react-redux";
 import { RoutesParamsList } from "src/routes";
-import AddTagButton from "./AddTagButton";
 import { Note } from "src/types";
+import AddTagButton from "./AddTagButton";
 
 
 type EditorProps = NativeStackScreenProps<RoutesParamsList, 'Editor'>
 
 export default function Editor({ route, navigation }: EditorProps) {
+  const dispatch = useDispatch();
   const [title, setTitle] = useState(route.params.note.title);
   const [content, setContent] = useState(route.params.note.content);
   const [tags, setTags] = useState(route.params.note.tags ?? []);
@@ -22,8 +25,7 @@ export default function Editor({ route, navigation }: EditorProps) {
       content,
       tags
     };
-
-    // dispatch something here...
+    dispatch(create(finalNote));
 
     navigation.navigate('Home');
   }

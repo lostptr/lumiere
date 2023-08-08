@@ -1,43 +1,18 @@
+import { NoteCard } from "@components";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootState } from "@store/store";
 import { FlatList, StyleSheet, View } from "react-native";
 import { FAB } from "react-native-paper";
-import { NoteCard } from "@components";
+import { useSelector } from "react-redux";
 import { RoutesParamsList } from "src/routes";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Note } from "src/types";
-
-const mockNotes: Note[] = [
-  {
-    id: 1,
-    title: "Primeira nota",
-    content: "Cooisasa soiasdajdsf asdjf asdjfhsak jdc askdjfl asndc asdc",
-    cover: "https://picsum.photos/700"
-  },
-  {
-    id: 2,
-    title: "Lista de compras",
-    content: "Batata, feijão, arroz, abacaxi, macaxeira.",
-    tags: ["listas"]
-  },
-  {
-    id: 3,
-    title: "Sonhos",
-    content: "Ser um padeiro até 2025",
-    tags: ["confeitaria", "sonhos"]
-  },
-  {
-    id: 4,
-    title: "Sonhos",
-    content: "Ser um padeiro até 2025",
-    tags: ["confeitaria", "sonhos"]
-  },
-]
-
 
 type HomeProps = NativeStackScreenProps<RoutesParamsList, 'Home'>
 
 const createEmptyNote = (): Note => ({ id: 0, title: '', content: '' });
 
 export default function Home({ navigation }: HomeProps) {
+  const notes = useSelector((state: RootState) => state.note.notes);
 
   const editNewNote = () => {
     navigation.navigate('Editor', { operation: "create", note: createEmptyNote() });
@@ -47,7 +22,7 @@ export default function Home({ navigation }: HomeProps) {
     <FlatList
       keyExtractor={item => item.id.toString()}
       contentContainerStyle={styles.container}
-      data={mockNotes}
+      data={notes}
       scrollEnabled={true}
       renderItem={({ item }) => <NoteCard {...item} />}
     />

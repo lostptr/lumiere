@@ -7,6 +7,7 @@ module.exports = {
         "@screens": "./src/screens",
         "@components": "./src/components",
         "@services": "./src/services",
+        "@store": "./src/store",
       }
     }]
   ],

@@ -3,7 +3,7 @@ import App from './App';
 import { name as appName } from './app.json';
 import { MD3LightTheme as DefaultTheme, PaperProvider } from 'react-native-paper';
 import { Provider } from "react-redux";
-import { store } from "./src/redux/store";
+import { store } from './src/store';
 
 const theme = {
   ...DefaultTheme,
@@ -12,11 +12,11 @@ const theme = {
 
 export default function Main() {
   return (
-    // <Provider store={store}>
-    <PaperProvider theme={theme}>
-      <App />
-    </PaperProvider>
-    // </Provider>
+    <Provider store={store}>
+      <PaperProvider theme={theme}>
+        <App />
+      </PaperProvider>
+    </Provider>
   );
 }
 
