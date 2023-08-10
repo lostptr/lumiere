@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { TextInput as RNTextInput, StyleSheet } from "react-native";
+import { useState } from "react";
+import { StyleSheet } from "react-native";
 import { Button, TextInput } from "react-native-paper";
 
 

@@ -1,7 +1,7 @@
 export default interface Note {
-  id: number,
+  id: string,
   title: string,
   content: string,
-  cover?: any,
+  cover?: string,
   tags?: string[],
 }
