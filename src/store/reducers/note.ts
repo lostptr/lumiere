@@ -1,6 +1,6 @@
-
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { Note } from "src/types";
+import uuid from "react-native-uuid";
 
 interface NoteStore {
   notes: Note[]
@@ -16,7 +16,7 @@ const noteSlice = createSlice({
   reducers: {
     create: (state, action: PayloadAction<Note>) => {
       const newNote = { ...action.payload };
-      newNote.id = state.notes.length + 1;
+      newNote.id = uuid.v4().toString();
       state.notes = [...state.notes, newNote];
     },
     edit: (state, action: PayloadAction<Note>) => {
@@ -31,9 +31,9 @@ const noteSlice = createSlice({
       // Replace the note in index 'i' with the new note.
       notes.splice(i, 1, newNote);
 
-      state.notes = notes;
+      state.notes = [...notes];
     },
-    remove: (state, action: PayloadAction<{ id: number }>) => {
+    remove: (state, action: PayloadAction<{ id: string }>) => {
       state.notes = state.notes.filter(n => n.id !== action.payload.id);
     },
   }

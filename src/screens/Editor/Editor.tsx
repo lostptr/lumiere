@@ -2,15 +2,19 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { create, edit } from "@store/reducers/note";
 import { useEffect, useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
-import { Appbar, Button, Chip, TextInput } from "react-native-paper";
+import { Appbar, Button, Chip, IconButton, Text, TextInput } from "react-native-paper";
 import { useDispatch } from "react-redux";
 import { RoutesParamsList } from "src/routes";
 import { Note } from "src/types";
-import AddTagButton from "./AddTagButton";
-import { launchImageLibrary } from "react-native-image-picker";
+import AddTagButton from "./components/AddTagButton";
+import { BottomSheet } from "@components";
+import BottomSheetOption from "./components/BottomSheetOption";
+import { pickFromGallery, takePicture } from "@services/image";
 
 
 type EditorProps = NativeStackScreenProps<RoutesParamsList, 'Editor'>
+
+type ImageSource = "gallery" | "camera";
 
 export default function Editor({ route, navigation }: EditorProps) {
   const dispatch = useDispatch();
@@ -20,6 +24,7 @@ export default function Editor({ route, navigation }: EditorProps) {
   const [content, setContent] = useState(route.params.note.content);
   const [tags, setTags] = useState(route.params.note.tags ?? []);
   const [cover, setCover] = useState<string | undefined>(route.params.note.cover);
+  const [coverSourcePickerVisible, setCoverSourcePickerVisible] = useState(false);
 
   useEffect(() => {
     navigation.setOptions({
@@ -27,7 +32,7 @@ export default function Editor({ route, navigation }: EditorProps) {
         return <Appbar.Action icon="check" onPress={onSubmit} />
       }
     });
-  }, [navigation, title, content, tags]);
+  }, [navigation, title, content, tags, cover]);
 
   const onSubmit = () => {
     const finalNote: Note = {
@@ -61,26 +66,21 @@ export default function Editor({ route, navigation }: EditorProps) {
     setTags(tags.filter(t => t !== tagToRemove));
   }
 
-  const addImage = async () => {
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
-      quality: 0.5,
-      includeBase64: true,
-    });
+  const openImagePicker = async (source: ImageSource) => {
+    setCoverSourcePickerVisible(false);
+    const action = (source === "camera") ? takePicture : pickFromGallery;
+    const picture = await action();
 
-    if (!result.didCancel) {
-      if (result.errorCode) {
-        console.error(result.errorMessage);
-        return;
-      }
-
-      const picture = result.assets?.at(0);
-      if (picture) {
-        const uri = `data:${picture.type};base64,${picture.base64}`;
-        setCover(uri);
+    if (picture.success) {
+      setCover(picture.imageUri);
+    }
+    else {
+      if (picture.error) {
+        console.error(picture.error);
       }
     }
-  };
+
+  }
 
   const tagElements = tags.map((tag) => (
     <Chip
@@ -94,25 +94,35 @@ export default function Editor({ route, navigation }: EditorProps) {
 
   return <View style={styles.container}>
     {!!cover &&
-      <Image source={{ uri: cover }} style={styles.cover} />
+      <View>
+        <Image source={{ uri: cover }} style={styles.cover} />
+        <IconButton
+          icon="image-edit"
+          iconColor="#FFF"
+          onPress={() => setCoverSourcePickerVisible(true)}
+          style={{ position: 'absolute', right: 0, bottom: 0, marginHorizontal: 16, }}></IconButton>
+      </View>
     }
 
-    {!cover &&
-      <Button onPress={addImage} icon="image-plus">Add Image</Button>
-    }
+    <View style={{ flexDirection: "row", alignItems: 'center' }}>
+      <TextInput
+        style={[styles.title, styles.invisibleTextInput]}
+        value={title}
+        underlineColor="transparent"
+        onChangeText={setTitle}
+        placeholder="Write a title here..."
+      />
 
-    <TextInput
-      style={[styles.title, styles.invisibleTextInput]}
-      value={title}
-      underlineColor="transparent"
-      onChangeText={setTitle}
-      placeholder="Write a title here..."
-    />
-
-    <View style={styles.tagContainer}>
-      {tagElements}
-
-      <AddTagButton onTagAdded={(tag) => addTag(tag)} />
+      {!cover &&
+        <Button
+          style={{ marginTop: 8, marginHorizontal: 4 }}
+          compact={true}
+          onPress={() => setCoverSourcePickerVisible(true)}
+          icon="image-plus"
+        >
+          Add Cover
+        </Button>
+      }
     </View>
 
     <TextInput
@@ -123,6 +133,20 @@ export default function Editor({ route, navigation }: EditorProps) {
       placeholder="Write the contents of the note here..."
       multiline={true}
     />
+
+    <View style={styles.tagContainer}>
+      {tagElements}
+
+      <AddTagButton onTagAdded={(tag) => addTag(tag)} />
+    </View>
+
+    <BottomSheet visible={coverSourcePickerVisible} onDismiss={() => setCoverSourcePickerVisible(false)}>
+      <Text variant="titleMedium" style={{ margin: 8 }} >Select an image from:</Text>
+      <View style={styles.bottomSheetOptions}>
+        <BottomSheetOption name="Gallery" icon="image-multiple" onPress={() => openImagePicker("gallery")} />
+        <BottomSheetOption name="Camera" icon="camera" onPress={() => openImagePicker("camera")} />
+      </View>
+    </BottomSheet>
   </View>
 }
 
@@ -136,6 +160,7 @@ const styles = StyleSheet.create({
   },
 
   tagContainer: {
+    marginVertical: 8,
     paddingHorizontal: 12,
     flexDirection: 'row',
     columnGap: 8,
@@ -144,6 +169,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
+    flex: 2,
     marginTop: 8,
     fontSize: 24,
     lineHeight: 42,
@@ -155,5 +181,12 @@ const styles = StyleSheet.create({
 
   invisibleTextInput: {
     backgroundColor: "transparent"
+  },
+
+  bottomSheetOptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    columnGap: 16,
+    paddingHorizontal: 16,
   },
 });

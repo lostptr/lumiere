@@ -11,7 +11,7 @@ import { Note } from "src/types";
 
 type HomeProps = NativeStackScreenProps<RoutesParamsList, 'Home'>
 
-const createEmptyNote = (): Note => ({ id: 0, title: '', content: '' });
+const createEmptyNote = (): Note => ({ id: '', title: '', content: '' });
 
 export default function Home({ navigation }: HomeProps) {
   const dispatch = useDispatch();
