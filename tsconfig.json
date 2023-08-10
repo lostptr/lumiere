@@ -9,8 +9,8 @@
       "@components": [
         "./src/components"
       ],
-      "@services": [
-        "./src/services"
+      "@services/*": [
+        "./src/services/*"
       ],
       "@store": [
         "./src/store"
