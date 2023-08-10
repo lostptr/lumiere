@@ -1,13 +1,13 @@
-
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { create, edit } from "@store/reducers/note";
 import { useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import { Appbar, Chip, TextInput } from "react-native-paper";
+import { Image, StyleSheet, View } from "react-native";
+import { Appbar, Button, Chip, TextInput } from "react-native-paper";
 import { useDispatch } from "react-redux";
 import { RoutesParamsList } from "src/routes";
 import { Note } from "src/types";
 import AddTagButton from "./AddTagButton";
+import { launchImageLibrary } from "react-native-image-picker";
 
 
 type EditorProps = NativeStackScreenProps<RoutesParamsList, 'Editor'>
@@ -15,16 +15,27 @@ type EditorProps = NativeStackScreenProps<RoutesParamsList, 'Editor'>
 export default function Editor({ route, navigation }: EditorProps) {
   const dispatch = useDispatch();
   const operation = route.params.operation;
+
   const [title, setTitle] = useState(route.params.note.title);
   const [content, setContent] = useState(route.params.note.content);
   const [tags, setTags] = useState(route.params.note.tags ?? []);
+  const [cover, setCover] = useState<string | undefined>(route.params.note.cover);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => {
+        return <Appbar.Action icon="check" onPress={onSubmit} />
+      }
+    });
+  }, [navigation, title, content, tags]);
 
   const onSubmit = () => {
     const finalNote: Note = {
       id: route.params.note.id,
       title,
       content,
-      tags
+      tags,
+      cover
     };
 
     let action;
@@ -42,14 +53,6 @@ export default function Editor({ route, navigation }: EditorProps) {
     navigation.navigate('Home');
   }
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => {
-        return <Appbar.Action icon="check" onPress={onSubmit} />
-      }
-    });
-  }, [navigation, title, content, tags]);
-
   const addTag = (tagToAdd: string) => {
     setTags([...tags, tagToAdd]);
   }
@@ -57,6 +60,27 @@ export default function Editor({ route, navigation }: EditorProps) {
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(t => t !== tagToRemove));
   }
+
+  const addImage = async () => {
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      quality: 0.5,
+      includeBase64: true,
+    });
+
+    if (!result.didCancel) {
+      if (result.errorCode) {
+        console.error(result.errorMessage);
+        return;
+      }
+
+      const picture = result.assets?.at(0);
+      if (picture) {
+        const uri = `data:${picture.type};base64,${picture.base64}`;
+        setCover(uri);
+      }
+    }
+  };
 
   const tagElements = tags.map((tag) => (
     <Chip
@@ -69,9 +93,13 @@ export default function Editor({ route, navigation }: EditorProps) {
   ));
 
   return <View style={styles.container}>
-    {/* <View style={styles.cover}>
+    {!!cover &&
+      <Image source={{ uri: cover }} style={styles.cover} />
+    }
 
-    </View> */}
+    {!cover &&
+      <Button onPress={addImage} icon="image-plus">Add Image</Button>
+    }
 
     <TextInput
       style={[styles.title, styles.invisibleTextInput]}
@@ -104,7 +132,7 @@ const styles = StyleSheet.create({
   },
 
   cover: {
-    height: 120,
+    height: 150,
   },
 
   tagContainer: {
@@ -128,7 +156,4 @@ const styles = StyleSheet.create({
   invisibleTextInput: {
     backgroundColor: "transparent"
   },
-
-
-
-})
+});
