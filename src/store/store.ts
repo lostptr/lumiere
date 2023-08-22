@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 import note from './reducers/note';
+import user from './reducers/user';
 
 const store = configureStore({
   reducer: {
-    note
+    note,
+    user,
   }
 });
 

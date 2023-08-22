@@ -6,10 +6,10 @@ import { useState } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { Button, Dialog, FAB, Portal, Text } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
-import { RoutesParamsList } from "src/routes";
+import { MainRoutesParamsList } from "src/routes";
 import { Note } from "src/types";
 
-type HomeProps = NativeStackScreenProps<RoutesParamsList, 'Home'>
+type HomeProps = NativeStackScreenProps<MainRoutesParamsList, 'Home'>
 
 const createEmptyNote = (): Note => ({ id: '', title: '', content: '' });
 

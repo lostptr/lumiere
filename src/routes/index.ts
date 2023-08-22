@@ -1,4 +1,6 @@
-import Routes, { RoutesParamsList } from "./Routes";
+import Routes from "./Routes";
+import { MainRoutesParamsList } from "./main";
+
 
 export { Routes };
-export type { RoutesParamsList };
+export type { MainRoutesParamsList };
