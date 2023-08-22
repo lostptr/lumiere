@@ -1,0 +1,11 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run Android Emulator",
+            "type": "shell",
+            "command": "C:\\Users\\savi\\AppData\\Local\\Android\\Sdk\\emulator\\emulator.exe -avd ANDROID_API_33",
+            "problemMatcher": []
+        }
+    ]
+}

@@ -1,37 +1,15 @@
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Editor, Home } from "@screens";
-import { Appbar } from "react-native-paper";
-import { Note } from "src/types";
-
-export type RoutesParamsList = {
-  Home: undefined,
-  Editor: { note: Note, operation: "create" | "edit" }
-}
-
-const Stack = createNativeStackNavigator<RoutesParamsList>();
+import { RootState } from "@store/store";
+import { useSelector } from "react-redux";
+import MainRoutes from "./main";
+import AuthRoutes from "./Auth";
 
 export default function Routes() {
-  return <>
-    <Stack.Navigator>
-      <Stack.Screen
-        name="Home"
-        component={Home}
-        options={{
-          headerRight: (props) => {
-            return <Appbar.Action icon="magnify" onPress={() => { }} />
-          }
-        }}
-      />
+  const user = useSelector((state: RootState) => state.user.user);
 
-      <Stack.Screen
-        name="Editor"
-        component={Editor}
-        options={{
-          headerBackButtonMenuEnabled: true,
-          headerTitle: "New note",
-          headerRight: () => (<Appbar.Action icon="check" />)
-        }}
-      />
-    </Stack.Navigator>
+  const isLoggedIn = !!user;
+
+  return <>
+    {!isLoggedIn && <AuthRoutes />}
+    {isLoggedIn && <MainRoutes />}
   </>
 }

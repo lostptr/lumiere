@@ -4,15 +4,14 @@ import { useEffect, useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { Appbar, Button, Chip, IconButton, Text, TextInput } from "react-native-paper";
 import { useDispatch } from "react-redux";
-import { RoutesParamsList } from "src/routes";
+import { MainRoutesParamsList } from "src/routes";
 import { Note } from "src/types";
 import AddTagButton from "./components/AddTagButton";
 import { BottomSheet } from "@components";
 import BottomSheetOption from "./components/BottomSheetOption";
 import { pickFromGallery, takePicture } from "@services/image";
 
-
-type EditorProps = NativeStackScreenProps<RoutesParamsList, 'Editor'>
+type EditorProps = NativeStackScreenProps<MainRoutesParamsList, 'Editor'>
 
 type ImageSource = "gallery" | "camera";
 
