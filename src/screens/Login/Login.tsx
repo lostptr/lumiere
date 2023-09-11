@@ -1,87 +1,98 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { createAccount, loginWithEmail } from "@services/supabase";
-import { login } from "@store/reducers/user";
-import { useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
-import { Button, Text, TextInput } from "react-native-paper";
-import { useDispatch } from "react-redux";
+import { fetchLoggedUser, login } from "@store/reducers/user";
+import { RootState, useAppDispatch } from "@store/store";
+import { useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
+import { Button, Text, TextInput, ActivityIndicator, Portal, Snackbar } from "react-native-paper";
+import { useSelector } from "react-redux";
 import { AuthRoutesParamsList } from "src/routes/Auth";
-import { User } from "src/types";
 
 type LoginProps = NativeStackScreenProps<AuthRoutesParamsList, 'Login'>
 
 export default function Login({ navigation }: LoginProps) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const [loading, setLoading] = useState(false);
+  const userStore = useSelector((state: RootState) => state.user);
   const [email, setEmail] = useState('leosavis@gmail.com');
   const [password, setPassword] = useState('s8DVu0As');
   const [showPassword, setShowPassword] = useState(false);
+  const [isFetchingSession, setFetchingSession] = useState(false);
+  const [isShowingSnackbar, setShowingSnackbar] = useState(userStore.status === "failed");
 
+  const loading = userStore.status === "loading";
   const canLogin = !!email && !!password && !loading;
 
-  const doLogin = async () => {
-    setLoading(true);
-    try {
-      const { error, data } = await loginWithEmail(email, password);
+  // Check if user is already logged.
+  useEffect(() => {
+    setFetchingSession(true);
+    dispatch(fetchLoggedUser())
+      .unwrap()
+      .then(() => setFetchingSession(false))
+      .catch(() => setFetchingSession(false));
+  }, []);
 
-      if (error) {
-        Alert.alert('Login Error', error.message);
-      }
-      else {
-        const user: User = {
-          id: data.user.id,
-          name: data.user.email ?? 'no name'
-        };
-        dispatch(login(user));
-      }
-    } catch (err) {
-      setLoading(false);
-      Alert.alert('Login Error', `${err}`);
-    }
+  const doLogin = () => {
+    dispatch(login({ email, password }));
   };
 
   const doSignUp = () => {
     navigation.navigate("SignUp");
   };
 
-  return <View style={styles.container}>
+  return <>
+    {!isFetchingSession &&
+      <>
+        <View style={styles.container}>
+          <View style={styles.titleContainer}>
+            <Text variant="displayLarge">lumiére</Text>
+            <Text variant="titleSmall">A note taking app</Text>
+          </View>
 
-    <View style={styles.titleContainer}>
-      <Text variant="displayLarge">lumiére</Text>
-      <Text variant="titleSmall">A note taking app</Text>
-    </View>
+          <TextInput mode="outlined"
+            value={email}
+            disabled={loading}
+            onChangeText={setEmail}
+            label="Email"
+          />
 
-    <TextInput mode="outlined"
-      value={email}
-      disabled={loading}
-      onChangeText={setEmail}
-      label="Email"
-    />
+          <TextInput
+            mode="outlined"
+            label="Password"
+            value={password}
+            disabled={loading}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            right={<TextInput.Icon icon="eye" onPress={() => setShowPassword(!showPassword)} />}
+          />
 
-    <TextInput
-      mode="outlined"
-      label="Password"
-      value={password}
-      disabled={loading}
-      onChangeText={setPassword}
-      secureTextEntry={!showPassword}
-      right={<TextInput.Icon icon="eye" onPress={() => setShowPassword(!showPassword)} />}
-    />
+          <Button
+            style={{ marginTop: 12 }}
+            loading={loading}
+            mode="contained"
+            disabled={!canLogin}
+            onPress={doLogin}>
+            Login
+          </Button>
 
-    <Button
-      style={{ marginTop: 12 }}
-      loading={loading}
-      mode="contained"
-      disabled={!canLogin}
-      onPress={doLogin}>
-      Login
-    </Button>
+          <Button mode="outlined" onPress={doSignUp}>
+            Register
+          </Button>
+        </View>
 
-    <Button mode="outlined" onPress={doSignUp}>
-      Register
-    </Button>
-  </View>
+        <Portal>
+          <Snackbar
+            visible={isShowingSnackbar}
+            onDismiss={() => setShowingSnackbar(false)}>
+            {userStore.error?.message}
+          </Snackbar>
+        </Portal>
+      </>
+    }
+
+    {isFetchingSession &&
+      <ActivityIndicator size={48} style={{ flex: 1 }} />
+    }
+  </>
 }
 
 
