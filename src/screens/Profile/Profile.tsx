@@ -1,27 +1,18 @@
-import { logoutFromAuth } from '@services/supabase';
 import { logout } from '@store/reducers/user';
-import { RootState } from '@store/store';
-import { useState } from 'react';
-import { Alert, View } from 'react-native';
+import { RootState, useAppDispatch } from '@store/store';
+import { View } from 'react-native';
 import { ActivityIndicator, Button, Text } from 'react-native-paper';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 
 export default function Profile() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const user = useSelector((state: RootState) => state.user.user);
-  const [loading, setLoading] = useState(false);
+  const userStatus = useSelector((state: RootState) => state.user.status);
+
+  const loading = userStatus === "loading";
 
   const signout = async () => {
-    setLoading(true);
-
-    const { error } = await logoutFromAuth();
-    if (error) {
-      Alert.alert('Logout Error', error.message);
-      setLoading(false);
-      return;
-    }
-
     dispatch(logout());
   };
 

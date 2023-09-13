@@ -1,11 +1,11 @@
 import { NoteCard } from "@components";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { remove } from "@store/reducers/note";
-import { RootState } from "@store/store";
-import { useState } from "react";
-import { FlatList, StyleSheet, View } from "react-native";
-import { Button, Dialog, FAB, Portal, Text } from "react-native-paper";
-import { useDispatch, useSelector } from "react-redux";
+import { fetchNotes, remove } from "@store/reducers/note";
+import { RootState, useAppDispatch } from "@store/store";
+import { useEffect, useState } from "react";
+import { FlatList, RefreshControl, SafeAreaView, StyleSheet, View } from "react-native";
+import { Button, Dialog, FAB, Portal, Text, useTheme } from "react-native-paper";
+import { useSelector } from "react-redux";
 import { MainRoutesParamsList } from "src/routes";
 import { Note } from "src/types";
 
@@ -14,10 +14,11 @@ type HomeProps = NativeStackScreenProps<MainRoutesParamsList, 'Home'>
 const createEmptyNote = (): Note => ({ id: '', title: '', content: '' });
 
 export default function Home({ navigation }: HomeProps) {
-  const dispatch = useDispatch();
-  const notes = useSelector((state: RootState) => state.note.notes);
 
+  const dispatch = useAppDispatch();
+  const noteStore = useSelector((state: RootState) => state.note);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const theme = useTheme();
 
   const createNote = () => {
     navigation.navigate('Editor', { operation: "create", note: createEmptyNote() });
@@ -33,19 +34,35 @@ export default function Home({ navigation }: HomeProps) {
 
   const deleteActionConfirm = () => {
     if (selectedNote) {
-      dispatch(remove({ id: selectedNote?.id }))
+      dispatch(remove(selectedNote))
     }
     setSelectedNote(null);
   }
 
-  return <View style={{ flex: 1, height: "100%" }}>
-    <FlatList
-      keyExtractor={item => item.id.toString()}
-      contentContainerStyle={styles.container}
-      data={notes}
-      scrollEnabled={true}
-      renderItem={({ item }) => <NoteCard note={item} onPress={editNote} onLongPress={askForDelete} />}
-    />
+  useEffect(() => {
+    if (noteStore.state === "idle" || !noteStore.synced) {
+      dispatch(fetchNotes());
+    }
+  }, [noteStore.state, noteStore.synced]);
+
+  return <>
+    <SafeAreaView style={{ flexGrow: 1, height: "100%" }}>
+      <FlatList
+        keyExtractor={item => item.id.toString()}
+        contentContainerStyle={styles.container}
+        data={noteStore.notes}
+        scrollEnabled={true}
+        refreshControl={
+          <RefreshControl
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+            refreshing={noteStore.state === 'loading'}
+            onRefresh={() => dispatch(fetchNotes())} />
+        }
+        ListFooterComponent={() => <View style={{ height: 80 }} />}
+        renderItem={({ item }) => <NoteCard note={item} onPress={editNote} onLongPress={askForDelete} />}
+      />
+    </SafeAreaView>
 
     <Portal>
       <Dialog visible={!!selectedNote} onDismiss={() => setSelectedNote(null)}>
@@ -65,13 +82,13 @@ export default function Home({ navigation }: HomeProps) {
       style={styles.fab}
       onPress={createNote}
     />
-  </View>
+  </>
 }
 
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 8,
   },
 
@@ -82,3 +99,4 @@ const styles = StyleSheet.create({
     bottom: 0,
   }
 });
+
